@@ -284,11 +284,11 @@ int main() {
 			} else if (lane < 2 && safe_right) {
 				lane++;
 			} else if (too_close) {
-				ref_val -= .255;
+				ref_val -= .19;
 			} 
 		}
 		if (!too_close && ref_val < 49.5) {
-	 		ref_val += (49.5 - ref_val) / 120 + .224;
+	 		ref_val += .19;
 		}
 
                 vector<double> ptsx;
