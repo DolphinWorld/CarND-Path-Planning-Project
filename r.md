@@ -9,11 +9,32 @@ Self-Driving Car Engineer Nanodegree Program
 ---
 
 ## Implementation ##
-The following are the steps:
 
 ### Read in highway map data and use it as map baseline ###
+Highway waypoints data is from `highway_map.csv`, which will be serving as baseline to transform from Frenet to Cartesian.
 
-### Handle "Telemetry" event every 0.2 second. ###
+### Handle `Telemetry` event every 0.2 second. ###
+
+Every 0.2 second, `telemetry` event will be triggered. When data of the event is a json string, which contains current car context, previous path, sensor information. The car context information includes `x`, `y`, `s`, `d`, `yaw` and `speed` of current car. The sensor information contains position and speed of all the surranding objects in Frenet coordination. 
+
+We care about other cars in three lanes, left, right and current lane. For current lane, we need to find out whether the car in front of us are too slow and may collide to my current car; for left and right lanes, we need to detect whether it is safe to switch lane to.
+
+This line is to find all the cars in neighbor and current lanes:
+```
+if (d < (2 + 4*(lane + 1) + 2) && d >(2 + 4 * (lane - 1)- 2))
+```
+
+And this is to detect whether it is left or right or current lane. `diff == 1` is for right lane, `diff == -1` is for left lane and `diff == 0` is for current lane.
+
+```
+int diff = 0;
+if (d >= (2 + 4*lane + 2)) {
+    diff = 1;
+}
+if (d < (2 + 4 * lane - 2)) {
+    diff = -1;
+}
+```
 
 ### Generate Trajectory ###
 ---
