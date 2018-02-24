@@ -6,6 +6,17 @@ Self-Driving Car Engineer Nanodegree Program
 
 *Download [Record.mp4](Record.mp4?raw=true) for the full video.*
 
+---
+
+The following are the steps:
+
+1. Read in highway map data and use it as map baseline
+
+2. Handle "Telemetry" event every 0.2 second.
+
+3. Generate Trajectory
+---
+
 ## Project Instructions 
 
 ---
