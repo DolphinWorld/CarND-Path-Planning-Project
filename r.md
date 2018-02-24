@@ -21,7 +21,7 @@ Every 0.2 second, `telemetry` event will be triggered. When data of the event is
 We care about other cars in three lanes, left, right and current lane. For current lane, we need to find out whether the car in front of us are too slow and may collide to my current car; for left and right lanes, we need to detect whether it is safe to switch lane to.
 
 This line is to find all the cars in neighbor and current lanes:
-```
+```c
 if (d < (2 + 4*(lane + 1) + 2) && d >(2 + 4 * (lane - 1)- 2))
 ```
 
@@ -48,6 +48,17 @@ if (diff == 0 && (check_car_s > car_s) && ((check_car_s - car_s) < 30)) {
 ```
 
 #### Detect the safety of neighbor lanes ####
+
+If the `s` distance between the car in the neighbor lane is between -5 meter to 20 meter, then it is treated as not safe. It will then set the safe_left or safe_right to false to avoid changing to that neighbor lane.
+
+```c
+double distance = check_car_s - car_s;
+bool safe = distance > 20 || distance < -10;
+if (!safe) {
+    if (diff == -1) safe_left = false;
+    if (diff == 1) safe_right = false;
+}
+```
 
 ### Generate Trajectory ###
 ---
