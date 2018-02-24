@@ -17,6 +17,7 @@ Highway waypoints data is from `highway_map.csv`, which will be serving as basel
 
 Every 0.2 second, `telemetry` event will be triggered. When data of the event is a json string, which contains current car context, previous path, sensor information. The car context information includes `x`, `y`, `s`, `d`, `yaw` and `speed` of current car. The sensor information contains position and speed of all the surranding objects in Frenet coordination. 
 
+#### Find cars in nearby and current lanes ####
 We care about other cars in three lanes, left, right and current lane. For current lane, we need to find out whether the car in front of us are too slow and may collide to my current car; for left and right lanes, we need to detect whether it is safe to switch lane to.
 
 This line is to find all the cars in neighbor and current lanes:
@@ -26,7 +27,7 @@ if (d < (2 + 4*(lane + 1) + 2) && d >(2 + 4 * (lane - 1)- 2))
 
 And this is to detect whether it is left or right or current lane. `diff == 1` is for right lane, `diff == -1` is for left lane and `diff == 0` is for current lane.
 
-```
+```c
 int diff = 0;
 if (d >= (2 + 4*lane + 2)) {
     diff = 1;
@@ -35,6 +36,18 @@ if (d < (2 + 4 * lane - 2)) {
     diff = -1;
 }
 ```
+
+#### Detect collision ####
+
+If the nearby car is in the same lane, in front of current car, and the distance shorter than 30 meter, we will mark the `too_close` flag to true for further consideration.
+
+```c
+if (diff == 0 && (check_car_s > car_s) && ((check_car_s - car_s) < 30)) {
+    too_close = true;
+}
+```
+
+#### Detect the safety of neighbor lanes ####
 
 ### Generate Trajectory ###
 ---
