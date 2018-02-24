@@ -1,6 +1,99 @@
 # CarND-Path-Planning-Project
 Self-Driving Car Engineer Nanodegree Program
    
+---
+![[Record Video][Record.mp4]](screenshot.png)
+
+*Download [Record.mp4](Record.mp4?raw=true) for the full video.*
+
+---
+
+## Implementation ##
+
+### Read in highway map data and use it as map baseline ###
+Highway waypoints data is from `highway_map.csv`, which will be serving as baseline to transform from Frenet to Cartesian.
+
+### Handle `Telemetry` event every 0.2 second. ###
+
+Every 0.2 second, `telemetry` event will be triggered. When data of the event is a json string, which contains current car context, previous path, sensor information. The car context information includes `x`, `y`, `s`, `d`, `yaw` and `speed` of current car. The sensor information contains position and speed of all the surranding objects in Frenet coordination. 
+
+#### Find cars in nearby and current lanes ####
+We care about other cars in three lanes, left, right and current lane. For current lane, we need to find out whether the car in front of us are too slow and may collide to my current car; for left and right lanes, we need to detect whether it is safe to switch lane to.
+
+This line is to find all the cars in neighbor and current lanes:
+```c
+if (d < (2 + 4*(lane + 1) + 2) && d >(2 + 4 * (lane - 1)- 2))
+```
+
+And this is to detect whether it is left or right or current lane. `diff == 1` is for right lane, `diff == -1` is for left lane and `diff == 0` is for current lane.
+
+```c
+int diff = 0;
+if (d >= (2 + 4*lane + 2)) {
+    diff = 1;
+}
+if (d < (2 + 4 * lane - 2)) {
+    diff = -1;
+}
+```
+
+#### Detect collision ####
+
+If the nearby car is in the same lane, in front of current car, and the distance shorter than 30 meter, we will mark the `too_close` flag to true for further consideration.
+
+```c
+if (diff == 0 && (check_car_s > car_s) && ((check_car_s - car_s) < 30)) {
+    too_close = true;
+}
+```
+
+#### Detect the safety of neighbor lanes ####
+
+If the `s` distance between the car in the neighbor lane is between -5 meter to 20 meter, then it is treated as not safe. It will then set the safe_left or safe_right to false to avoid changing to that neighbor lane.
+
+```c
+double distance = check_car_s - car_s;
+bool safe = distance > 20 || distance < -10;
+if (!safe) {
+    if (diff == -1) safe_left = false;
+    if (diff == 1) safe_right = false;
+}
+```
+
+#### Plan next action ####
+
+If `too_close` flag is `true`, we will first try to switch to neighbor lane if it is safe. If the neighbor lanes are not safe to switch to, then we will slow down the car.
+
+If `too_close` is not `true`, and the car speed is slower than the limit, we will speed up slowly. 
+
+Here is the code:
+
+```c
+if (too_close) {
+    if (lane > 0 && safe_left) {
+	lane--;
+    } else if (lane < 2 && safe_right) {
+        lane++;
+    } else if (too_close) {
+	ref_val -= .19;
+    }
+}
+if (!too_close && ref_val < 49.5) {
+    ref_val += .19;
+}
+```
+
+
+### Generate Trajectory ###
+Using the last two waypoints from previous path which returned from sensor, then add another 3 points, which are +30, +60, +90 meters ahead, and pass to spline.set_points method to create a smooth path.
+
+
+---
+
+## Project Instructions 
+
+---
+
 ### Simulator.
 You can download the Term3 Simulator which contains the Path Planning Project from the [releases tab (https://github.com/udacity/self-driving-car-sim/releases).
 
